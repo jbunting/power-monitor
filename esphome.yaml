@@ -1,0 +1,143 @@
+esphome:
+  name: power-consumption-sensor
+  friendly_name: Power Consumption
+
+esp32:
+  board: esp32-poe-iso
+  framework:
+    type: esp-idf
+    
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 0
+  power_pin: GPIO12
+
+sensor:
+  - platform: adc
+    pin: GPIO33
+    id: adc_a1
+    update_interval: 10s
+    attenuation: auto
+    accuracy_decimals: 6
+  - platform: ct_clamp
+    sensor: adc_a1
+    id: clamp_a1
+    update_interval: 10s
+  - platform: template
+    id: power_a1
+    name: "Current Power (A1)"
+    lambda: return id(clamp_a1).state * 120.0 / 1000; 
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+  - platform: total_daily_energy
+    name: "Total Daily Energy (A1)"
+    power_id: power_a1
+
+  - platform: adc
+    pin: GPIO32
+    id: adc_a2
+    update_interval: 10s
+    attenuation: auto
+    accuracy_decimals: 6
+  - platform: ct_clamp
+    sensor: adc_a2
+    id: clamp_a2
+    update_interval: 10s
+  - platform: template
+    id: power_a2
+    name: "Current Power (A2)"
+    lambda: return id(clamp_a2).state * 120.0 / 1000; 
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+  - platform: total_daily_energy
+    name: "Total Daily Energy (A2)"
+    power_id: power_a2
+
+  - platform: template
+    id: power_a
+    name: "Current Power Panel (A)"
+    lambda: return id(power_a1).state + id(power_a2).state ;
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+
+  - platform: adc
+    pin: GPIO14
+    id: adc_b1
+    update_interval: 10s
+    attenuation: auto
+    accuracy_decimals: 6
+  - platform: ct_clamp
+    sensor: adc_b1
+    id: clamp_b1
+    update_interval: 10s
+  - platform: template
+    id: power_b1
+    name: "Current Power (B1)"
+    lambda: return id(clamp_b1).state * 120.0 / 1000; 
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+  - platform: total_daily_energy
+    name: "Total Daily Energy (B1)"
+    power_id: power_b1
+
+  - platform: adc
+    pin: GPIO13
+    id: adc_b2
+    update_interval: 10s
+    attenuation: auto
+    accuracy_decimals: 6
+  - platform: ct_clamp
+    sensor: adc_b2
+    id: clamp_b2
+    update_interval: 10s
+  - platform: template
+    id: power_b2 
+    name: "Current Power (B2)"
+    lambda: return id(clamp_b2).state * 120.0 / 1000; 
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+  - platform: total_daily_energy
+    name: "Total Daily Energy (B2)"
+    power_id: power_b2
+
+  - platform: template
+    id: power_b
+    name: "Current Power Panel (B)"
+    lambda: return id(power_b1).state + id(power_b2).state ;
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+
+  - platform: template
+    id: power_house
+    name: "Current Power Panel (Combined)"
+    lambda: return id(power_a1).state + id(power_a2).state + id(power_b1).state + id(power_b2).state ;
+    unit_of_measurement: 'kW'
+    update_interval: 5s
+
+  - platform: total_daily_energy
+    name: Total Daily Energy
+    power_id: power_house
+    
+  - platform: adc
+    pin: GPIO2
+    id: adc_v
+    update_interval: 10s
+    attenuation: auto
+    accuracy_decimals: 6
+
+time:
+  - platform: sntp
+    id: mytime
+    timezone: ET
+
